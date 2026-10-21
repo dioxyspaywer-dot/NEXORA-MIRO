@@ -30,15 +30,9 @@ android {
         jvmTarget = "17" 
     }
     
-    // Activation du View Binding pour générer les classes Binding automatiquement
+    // Activation du View Binding (indispensable pour ActivityMainBinding)
     buildFeatures { 
         viewBinding = true 
-    }
-    
-    // Suppression de l'avertissement concernant le SDK 34
-    @Suppress("UnstableApiUsage")
-    testOptions {
-        targetSdk = 34
     }
 }
 
