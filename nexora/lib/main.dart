@@ -5,7 +5,7 @@ import 'services/auth_service.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
-  // Très important : empêche l'app de planter silencieusement pendant l'initialisation
+  // Cette ligne est OBLIGATOIRE pour éviter le crash au démarrage
   WidgetsFlutterBinding.ensureInitialized();
   
   runApp(
