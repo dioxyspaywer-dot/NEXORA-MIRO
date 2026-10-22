@@ -1,5 +1,5 @@
 # NEXORA & MIRO
-Système de supervision familiale à distance avec enregistrement d'écran.
+Système de supervision familiale à distance avec enregistrements d'écran.
 ## Architecture
 - `/server` — API Node.js + TypeScript + MongoDB + WebSocket + GridFS + Cloudinary
 - `/nexora` — Application parent Flutter
