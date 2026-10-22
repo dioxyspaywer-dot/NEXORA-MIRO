@@ -16,16 +16,17 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   void initState() {
     super.initState();
+    // On appelle _load mais on ne met pas await ici pour ne pas bloquer l'UI
     _load();
   }
 
   Future<void> _load() async {
     try {
-      // Correction ici : on await le résultat avant de faire setState
       final data = await context.read<ApiService>().get('/devices');
       if (mounted) setState(() => _d = data);
     } catch (_) {
-      // Erreur silencieuse pour l'instant
+      // Si le serveur n'est pas encore configuré, on évite que l'app plante
+      if (mounted) setState(() => _d = []);
     }
     if (mounted) setState(() => _l = false);
   }
