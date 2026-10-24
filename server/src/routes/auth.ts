@@ -1,0 +1,5 @@
+import { Router } from 'express'; import jwt from 'jsonwebtoken'; import User from '../models/User';
+const r = Router();
+r.post('/register', async (req,res) => { try { const {email,password,firstName,lastName}=req.body; if(await User.findOne({email}))return res.status(409).json({error:'Email déjà utilisé'}); const u=await User.create({email,passwordHash:password,firstName,lastName}); res.status(201).json({token:jwt.sign({userId:u._id},process.env.JWT_SECRET!,{expiresIn:'30d'}),userId:u._id}); }catch(e:any){res.status(500).json({error:e.message});} });
+r.post('/login', async (req,res) => { try { const {email,password}=req.body; const u=await User.findOne({email}); if(!u||!(await u.comparePassword(password)))return res.status(401).json({error:'Identifiants invalides'}); res.json({token:jwt.sign({userId:u._id},process.env.JWT_SECRET!,{expiresIn:'30d'}),userId:u._id}); }catch(e:any){res.status(500).json({error:e.message});} });
+export default r;

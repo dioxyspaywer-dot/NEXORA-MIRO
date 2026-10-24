@@ -1,0 +1,7 @@
+import mongoose, { Schema, Document } from 'mongoose';
+export interface IScreenRecording extends Document { sessionId: string; deviceId: string; userId: mongoose.Types.ObjectId; storageBackend: 'gridfs'|'cloudinary'; gridFsFileId?: mongoose.Types.ObjectId; cloudinaryPublicId?: string; cloudinarySecureUrl?: string; durationMs: number; fileSizeBytes: number; mimeType: string; resolution?: string; recordedAt: Date; expiresAt: Date; downloadedBy: Array<{userId:mongoose.Types.ObjectId;downloadedAt:Date}>; }
+const s = new Schema<IScreenRecording>({ sessionId: { type: String, required: true }, deviceId: { type: String, required: true }, userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, storageBackend: { type: String, enum: ['gridfs','cloudinary'], required: true }, gridFsFileId: Schema.Types.ObjectId, cloudinaryPublicId: String, cloudinarySecureUrl: String, durationMs: { type: Number, required: true }, fileSizeBytes: { type: Number, required: true }, mimeType: { type: String, default: 'video/mp4' }, resolution: String, recordedAt: { type: Date, required: true }, expiresAt: { type: Date, required: true }, downloadedBy: [{ userId: Schema.Types.ObjectId, downloadedAt: Date }] }, { timestamps: true });
+s.index({ userId: 1, recordedAt: -1 });
+s.index({ deviceId: 1, recordedAt: -1 });
+s.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+export default mongoose.model<IScreenRecording>('ScreenRecording', s);
