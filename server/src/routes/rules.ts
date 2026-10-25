@@ -1,0 +1,6 @@
+import { Router } from 'express'; import { authMiddleware, AuthRequest } from '../middleware/authMiddleware'; import Rule from '../models/Rule'; import DeviceLink from '../models/DeviceLink';
+const r = Router();
+r.get('/:deviceId', authMiddleware, async (req:AuthRequest,res) => { if(!(await DeviceLink.findOne({userId:req.userId,deviceId:req.params.deviceId,isActive:true})))return res.status(403).json({error:'Accès refusé'}); res.json(await Rule.find({userId:req.userId,deviceId:req.params.deviceId,isActive:true})); });
+r.post('/', authMiddleware, async (req:AuthRequest,res) => { try { const {deviceId,type,config}=req.body; if(!(await DeviceLink.findOne({userId:req.userId,deviceId,isActive:true})))return res.status(403).json({error:'Accès refusé'}); res.status(201).json(await Rule.create({userId:req.userId,deviceId,type,config})); }catch(e:any){res.status(500).json({error:e.message});} });
+r.patch('/:ruleId/deactivate', authMiddleware, async (req:AuthRequest,res) => { const rl=await Rule.findOne({_id:req.params.ruleId,userId:req.userId}); if(!rl)return res.status(404).json({error:'Règle non trouvée'}); rl.isActive=false;await rl.save();res.json({success:true}); });
+export default r;

@@ -1,0 +1,5 @@
+import { Router } from 'express'; import { authMiddleware, AuthRequest } from '../middleware/authMiddleware'; import Device from '../models/Device'; import DeviceLink from '../models/DeviceLink'; import AuditLog from '../models/AuditLog';
+const r = Router();
+r.get('/', authMiddleware, async (req:AuthRequest,res) => { const l=await DeviceLink.find({userId:req.userId,isActive:true}); res.json(await Device.find({deviceId:{$in:l.map(x=>x.deviceId)}})); });
+r.delete('/:deviceId', authMiddleware, async (req:AuthRequest,res) => { const l=await DeviceLink.findOne({userId:req.userId,deviceId:req.params.deviceId,isActive:true}); if(!l)return res.status(404).json({error:'Appareil non trouvé'}); l.isActive=false;await l.save(); await Device.updateOne({deviceId:req.params.deviceId},{status:'revoked'}); await AuditLog.create({userId:req.userId,deviceId:req.params.deviceId,action:'DEVICE_REVOKED'}); res.json({success:true}); });
+export default r;
