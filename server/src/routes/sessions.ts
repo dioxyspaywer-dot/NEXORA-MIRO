@@ -1,0 +1,6 @@
+import { Router } from 'express'; import { v4 as uuidv4 } from 'uuid'; import { authMiddleware, AuthRequest } from '../middleware/authMiddleware'; import Session from '../models/Session'; import DeviceLink from '../models/DeviceLink';
+const r = Router();
+r.post('/request', authMiddleware, async (req:AuthRequest,res) => { try { const {deviceId,type}=req.body; if(!(await DeviceLink.findOne({userId:req.userId,deviceId,isActive:true})))return res.status(403).json({error:'Accès refusé'}); res.status(201).json(await Session.create({sessionId:uuidv4(),userId:req.userId,deviceId,type,status:'pending'})); }catch(e:any){res.status(500).json({error:e.message});} });
+r.get('/active/:deviceId', authMiddleware, async (req:AuthRequest,res) => res.json(await Session.find({userId:req.userId,deviceId:req.params.deviceId,status:{$in:['pending','active']}})));
+r.patch('/:sessionId/end', authMiddleware, async (req:AuthRequest,res) => { const s=await Session.findOne({sessionId:req.params.sessionId,userId:req.userId}); if(!s)return res.status(404).json({error:'Session non trouvée'}); s.status='ended';s.endedAt=new Date();await s.save();res.json({success:true}); });
+export default r;
