@@ -1,0 +1,4 @@
+import mongoose, { Schema, Document } from 'mongoose';
+export interface ISession extends Document { sessionId: string; userId: mongoose.Types.ObjectId; deviceId: string; type: 'screen_share'|'audio_call'|'video_call'|'screen_recording'; status: 'pending'|'active'|'ended'|'rejected'; startedAt?: Date; endedAt?: Date; recordingId?: mongoose.Types.ObjectId; }
+const s = new Schema<ISession>({ sessionId: { type: String, required: true, unique: true }, userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, deviceId: { type: String, required: true }, type: { type: String, enum: ['screen_share','audio_call','video_call','screen_recording'], required: true }, status: { type: String, enum: ['pending','active','ended','rejected'], default: 'pending' }, startedAt: Date, endedAt: Date, recordingId: { type: Schema.Types.ObjectId, ref: 'ScreenRecording' } }, { timestamps: true });
+export default mongoose.model<ISession>('Session', s);
