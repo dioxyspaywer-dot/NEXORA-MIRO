@@ -1,0 +1,12 @@
+import express from 'express'; import cors from 'cors'; import dotenv from 'dotenv'; dotenv.config();
+import authRoutes from './routes/auth'; import pairingRoutes from './routes/pairing'; import devicesRoutes from './routes/devices';
+import reportsRoutes from './routes/reports'; import locationsRoutes from './routes/locations'; import rulesRoutes from './routes/rules';
+import notificationsRoutes from './routes/notifications'; import sessionsRoutes from './routes/sessions';
+import miroRoutes from './routes/miro'; import recordingsRoutes from './routes/recordings';
+const app = express(); app.use(cors()); app.use(express.json({limit:'10mb'}));
+app.use('/api/auth',authRoutes); app.use('/api/pairing',pairingRoutes); app.use('/api/devices',devicesRoutes);
+app.use('/api/reports',reportsRoutes); app.use('/api/locations',locationsRoutes); app.use('/api/rules',rulesRoutes);
+app.use('/api/notifications',notificationsRoutes); app.use('/api/sessions',sessionsRoutes);
+app.use('/api/miro',miroRoutes); app.use('/api/recordings',recordingsRoutes);
+app.get('/health',(_,res)=>res.json({status:'ok'}));
+export default app;
