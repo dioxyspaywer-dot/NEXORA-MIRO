@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MIRO</string>
+    <string name="accessibility_desc">MIRO a besoin de cette permission pour activer automatiquement la surveillance d\'écran après chaque redémarrage.</string>
+</resources>
