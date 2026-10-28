@@ -32,10 +32,10 @@ class PairingActivity : AppCompatActivity() {
             jsonBody.put("manufacturer", android.os.Build.MANUFACTURER)
             jsonBody.put("model", android.os.Build.MODEL)
             jsonBody.put("androidVersion", android.os.Build.VERSION.RELEASE)
-            // Correction ici pour éviter l'ambiguïté Kotlin/Java :
             jsonBody.put("supportsScreenRecording", java.lang.Boolean.TRUE)
 
-            Api.post("/pairing/confirm", jsonBody) { result ->
+            // Appel avec /api devant
+            Api.post("/api/pairing/confirm", jsonBody) { result ->
                 runOnUiThread {
                     result.onSuccess { 
                         Prefs.deviceId = deviceId

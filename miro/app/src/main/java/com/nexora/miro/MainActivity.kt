@@ -80,11 +80,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startBackgroundServices() {
-        // Lancer GPS
         val locIntent = Intent(this, LocationService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(locIntent) else startService(locIntent)
 
-        // Lancer Sync (Rapports)
         val syncIntent = Intent(this, SyncWorker::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(syncIntent) else startService(syncIntent)
     }

@@ -36,7 +36,6 @@ class LocationService : Service(), LocationListener {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        // GPS Intensif : 10 secondes (10000ms), 0 mètres
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, this, Looper.getMainLooper())
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0f, this, Looper.getMainLooper())
     }
@@ -49,7 +48,7 @@ class LocationService : Service(), LocationListener {
             json.put("longitude", location.longitude)
             json.put("accuracy", location.accuracy)
             json.put("recordedAt", System.currentTimeMillis())
-            Api.post("/miro/location", json, Prefs.token) {}
+            Api.post("/api/miro/location", json, Prefs.token) {}
         }
     }
 

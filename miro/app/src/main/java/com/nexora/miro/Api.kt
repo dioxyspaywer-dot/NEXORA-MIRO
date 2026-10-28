@@ -8,7 +8,9 @@ import java.io.IOException
 
 object Api {
     private val client = OkHttpClient()
-    private const val BASE = "https://nexora-miro-server.onrender.com/api" // ⚠️ REMPLACE PAR TON URL RENDER REEL
+    
+    // ✅ TON URL RENDER INTÉGRÉE
+    private const val BASE = "https://nexora-miro.onrender.com"
 
     fun post(path: String, body: JSONObject, token: String? = null, cb: (Result<JSONObject>) -> Unit) {
         val req = Request.Builder().url("$BASE$path").post(body.toString().toRequestBody("application/json".toMediaType()))
@@ -17,7 +19,7 @@ object Api {
             override fun onFailure(call: Call, e: IOException) = cb(Result.failure(e))
             override fun onResponse(call: Call, response: Response) {
                 val b = response.body?.string() ?: "{}"
-                cb(if (response.isSuccessful) Result.success(JSONObject(b)) else Result.failure(Exception(b)))
+                cb(if (response.isSuccessful) Result.success(JSONObject(b)) else Result.failure(Exception("Erreur ${response.code}: $b")))
             }
         })
     }

