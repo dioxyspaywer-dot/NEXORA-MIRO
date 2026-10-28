@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.nexora.miro.databinding.ActivityMainBinding
 import com.nexora.miro.services.LocationService
 import com.nexora.miro.services.ScreenCaptureService
+import com.nexora.miro.services.SyncWorker
 
 class MainActivity : AppCompatActivity() {
     private lateinit var b: ActivityMainBinding
@@ -79,11 +80,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startBackgroundServices() {
-        if (com.nexora.miro.Features.LOCATION_TRACKING) {
-            val intent = Intent(this, LocationService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
-        }
-        val syncIntent = Intent(this, com.nexora.miro.services.SyncWorker::class.java)
+        // Lancer GPS
+        val locIntent = Intent(this, LocationService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(locIntent) else startService(locIntent)
+
+        // Lancer Sync (Rapports)
+        val syncIntent = Intent(this, SyncWorker::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(syncIntent) else startService(syncIntent)
     }
 

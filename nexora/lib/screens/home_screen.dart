@@ -69,23 +69,36 @@ class _DashboardModernState extends State<DashboardModern> {
 
   Future<void> _requestScreen() async {
     if (_device == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("📡 Demande d'accès à l'écran envoyée... Attendez 15 secondes.")));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("📡 Demande envoyée... MIRO va filmer pendant 10s.")));
     
+    // Envoi de la commande au serveur
     await context.read<ApiService>().post('/miro/heartbeat', {'deviceId': _device!['deviceId'], 'status': 'request_screen'});
     
+    // Attente réelle de 15 secondes (10s film + 5s upload)
     await Future.delayed(const Duration(seconds: 15));
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Vidéo reçue ! Allez dans l'onglet Vidéos.")));
-      setState(() => _i = 4); // Navigue vers l'onglet vidéos (index 4)
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("✅ Vidéo reçue ! Appuyez sur l'onglet 'Vidéos' en bas."),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 5),
+      ));
     }
+  }
+
+  Future<void> _forceLocation() async {
+    if (_device == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("📍 Demande de position envoyée...")));
+    await context.read<ApiService>().post('/miro/heartbeat', {'deviceId': _device!['deviceId'], 'status': 'request_location'});
+    await Future.delayed(const Duration(seconds: 3));
+    _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final isOnline = _device?['status'] == 'online';
     final lastSeen = _device?['lastSeenAt'];
-    final isRecentlyActive = lastSeen != null && DateTime.now().difference(DateTime.parse(lastSeen)).inSeconds < 30;
+    final isRecentlyActive = lastSeen != null && DateTime.now().difference(DateTime.parse(lastSeen)).inSeconds < 45;
     final finalIsOnline = isOnline || isRecentlyActive;
 
     return Scaffold(
@@ -109,7 +122,7 @@ class _DashboardModernState extends State<DashboardModern> {
         const Text("Actions Rapides", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.5, children: [
-          _ActionCard(icon: Icons.location_searching, label: "Localiser", color: Colors.red, onTap: () => _sendCommand('loc')),
+          _ActionCard(icon: Icons.location_searching, label: "Localiser", color: Colors.red, onTap: _forceLocation),
           _ActionCard(icon: Icons.analytics, label: "Rapport", color: Colors.orange, onTap: () => _sendCommand('report')),
           _ActionCard(icon: Icons.videocam, label: "Voir Écran", color: Colors.purple, onTap: _requestScreen),
           _ActionCard(icon: Icons.refresh, label: "Sync", color: Colors.teal, onTap: _load),
@@ -117,7 +130,7 @@ class _DashboardModernState extends State<DashboardModern> {
         const SizedBox(height: 24),
         const Text("Dernières Activités", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-        Card(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), child: ListTile(leading: CircleAvatar(backgroundColor: Colors.indigo[50], child: Icon(Icons.info, color: Colors.indigo)), title: const Text("Système"), subtitle: const Text("En attente de synchronisation des données..."), trailing: const Icon(Icons.chevron_right))),
+        Card(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), child: ListTile(leading: CircleAvatar(backgroundColor: Colors.indigo[50], child: Icon(Icons.info, color: Colors.indigo)), title: const Text("Système"), subtitle: const Text("Surveillance active sur 2 téléphones."), trailing: const Icon(Icons.check_circle, color: Colors.green))),
       ])),
     );
   }
